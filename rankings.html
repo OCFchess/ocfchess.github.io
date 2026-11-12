@@ -1,0 +1,229 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="theme-color" content="#101114">
+<title>Rankings — CHESS.</title>
+<style>
+:root{--background:#101114;--surface:#191b20;--surface-light:#22252c;--border:#30333b;--text:#f4f4f5;--muted:#999da8;--red:#c62828;--red-hover:#e53935}
+*{box-sizing:border-box;margin:0;padding:0}
+body{min-height:100vh;background:var(--background);color:var(--text);font-family:Arial,Helvetica,sans-serif;display:flex;flex-direction:column}
+a{color:inherit;text-decoration:none}
+header{height:76px;padding:0 8%;display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid var(--border);background:#141519}
+.logo{font-size:23px;font-weight:800;letter-spacing:-1px}.logo span{color:var(--red-hover)}
+nav{display:flex;align-items:center;gap:28px}
+nav a{color:var(--muted);font-size:14px}nav a:hover{color:var(--text)}
+nav a.login-button{background:var(--red);color:#fff;padding:10px 17px;border-radius:6px;font-weight:700}
+nav a.login-button:hover{background:var(--red-hover)}
+.tb{display:inline-block;background:#A71924;color:#fff;font-size:10px;font-weight:900;padding:2px 5px;border-radius:3px;margin-right:6px;letter-spacing:.3px;vertical-align:middle}
+main{flex:1;width:min(860px,92%);margin:44px auto 80px}
+.head{display:flex;align-items:center;justify-content:space-between;gap:16px;flex-wrap:wrap;margin-bottom:18px}
+h1{font-size:30px;letter-spacing:-1px}
+select{padding:11px 14px;border:1px solid var(--border);border-radius:7px;background:var(--surface);color:#fff;font-size:14px;font-weight:700;cursor:pointer}
+.sub{color:var(--muted);font-size:13px;margin-bottom:18px}
+.list{background:var(--surface);border:1px solid var(--border);border-radius:12px;overflow:hidden}
+.row{display:flex;align-items:center;gap:14px;padding:12px 18px;border-bottom:1px solid var(--border)}
+.row:last-child{border-bottom:0}
+.row:hover{background:var(--surface-light)}
+.rank{width:34px;color:var(--muted);font-size:13px;font-variant-numeric:tabular-nums}
+.av{width:34px;height:34px;flex:0 0 34px;border-radius:8px;background:#292d36;display:grid;place-items:center;font-weight:900;overflow:hidden}
+.av img{width:100%;height:100%;object-fit:cover;display:block}
+.name{flex:1;min-width:0;font-weight:700;overflow-wrap:anywhere}
+.name small{color:var(--muted);font-weight:400;font-size:13px}
+.status{display:flex;align-items:center;gap:7px;font-size:12px;color:var(--muted);min-width:78px}
+.dot{width:8px;height:8px;border-radius:50%;background:#555a66}
+.status.online .dot{background:#42b883}.status.online{color:#8fe0b5}
+.status.playing .dot{background:#f2b84b}.status.playing{color:#f5cf85}
+.flag{height:13px;border-radius:2px;vertical-align:middle;margin-right:6px}
+.list{overflow:visible}.row:first-child{border-radius:12px 12px 0 0}.row:last-child{border-radius:0 0 12px 12px}
+.empty{padding:28px;text-align:center;color:var(--muted);font-size:14px}
+footer{border-top:1px solid var(--border);padding:24px 8%;color:var(--muted);font-size:12px;text-align:center}
+@media(max-width:600px){header{padding:0 5%}nav{gap:12px}nav a:not(.login-button):not(#logoutLink){display:none}.row{padding:11px 12px;gap:10px}}
+
+.tb[data-tip],.title-badge[data-tip]{position:relative;cursor:help}
+.tb[data-tip]:hover::after,.title-badge[data-tip]:hover::after{content:attr(data-tip);position:absolute;bottom:calc(100% + 7px);left:50%;transform:translateX(-50%);background:#000;color:#fff;font-size:11px;font-weight:700;letter-spacing:0;text-transform:none;white-space:nowrap;padding:5px 9px;border-radius:5px;border:1px solid #30333b;z-index:60;pointer-events:none}
+@media(max-width:700px){
+  header,.topbar{height:auto!important;flex-wrap:wrap;padding:10px 4%!important;gap:6px 12px}
+  header nav,.topbar nav{width:100%;overflow-x:auto;gap:18px!important;padding:4px 0 6px;scrollbar-width:none}
+  header nav a,.topbar nav a{display:inline-block!important;white-space:nowrap}
+  header nav a[hidden],.topbar nav a[hidden]{display:none!important}
+  button,select,.btn{min-height:44px}
+}
+</style>
+</head>
+<body>
+<header>
+  <a href="index.html" class="logo">CHESS<span>.</span></a>
+  <nav>
+    <a href="play.html">Play</a>
+    <a href="rankings.html">Rankings</a>
+    <a href="tournaments.html">Tournaments</a>
+    <a href="player.html">Players</a>
+    <a href="login.html" class="login-button" id="authLink">Log In</a>
+    <a href="#" id="logoutLink" hidden>Log out</a>
+  </nav>
+</header>
+
+<main>
+  <div class="head">
+    <h1>Global Rankings</h1>
+    <select id="mode" aria-label="Rating category">
+      <option value="overall">overall</option>
+      <option value="blitz">blitz</option>
+      <option value="rapid">rapid</option>
+      <option value="bullet">bullet</option>
+      <option value="classical">classical</option>
+    </select>
+    <select id="country" aria-label="Country"><option value="">All countries</option></select>
+  </div>
+  <p class="sub">Top 100. Online and playing players are listed first, then the highest-rated offline players. “Overall” is a player’s best rating across all modes.</p>
+  <div class="list" id="list"><div class="empty">Loading…</div></div>
+</main>
+
+<footer>Independent chess platform · Not affiliated with FIDE</footer>
+
+<script type="module">
+import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+
+const supabase = createClient(
+  "https://hloyebtuqozxalewkbgp.supabase.co",
+  "sb_publishable_LhVKo17KVegP0q_qWqghnw_wkOYn3l4"
+);
+const $ = (id) => document.getElementById(id);
+const FIELDS = "id,username,title,avatar_url,country,overall_rating,bullet_rating,blitz_rating,rapid_rating,classical_rating";
+const LIMIT = 100;
+
+/* ---------- nav ---------- */
+const { data: { session } } = await supabase.auth.getSession();
+const user = session?.user ?? null;
+if (user) {
+  const { data: me } = await supabase.from("profiles").select("username,title").eq("id", user.id).maybeSingle();
+  const name = me?.username || user.user_metadata?.username || "Account";
+  const link = $("authLink");
+  link.href = "player.html?user=" + encodeURIComponent(name);
+  link.textContent = "";
+  if (me?.title) { const b = document.createElement("span"); b.className = "tb"; b.textContent = me.title.toUpperCase(); link.append(b); }
+  link.append(name);
+  $("logoutLink").hidden = false;
+  $("logoutLink").onclick = async (e) => { e.preventDefault(); await supabase.auth.signOut(); location.href = "index.html"; };
+}
+
+/* ---------- presence (who has a page open) + active games ---------- */
+let online = new Set();
+let playing = new Set();
+
+const channel = supabase.channel("online", { config: { presence: { key: user?.id ?? crypto.randomUUID() } } });
+channel.on("presence", { event: "sync" }, () => {
+  online = new Set(Object.keys(channel.presenceState()));
+  schedule();
+});
+channel.subscribe(async (status) => {
+  if (status === "SUBSCRIBED" && user) await channel.track({ at: Date.now() });
+});
+
+async function loadPlaying() {
+  const { data } = await supabase.from("games").select("white_id,black_id").eq("status", "active").limit(1000);
+  playing = new Set();
+  for (const g of data || []) { playing.add(g.white_id); if (g.black_id) playing.add(g.black_id); }
+}
+
+/* ---------- ranking ---------- */
+let seq = 0, timer;
+const schedule = () => { clearTimeout(timer); timer = setTimeout(build, 250); };
+
+async function build() {
+  const mine = ++seq;
+  const mode = $("mode").value;
+  const col = mode + "_rating";
+  const country = $("country").value;
+  const byCountry = (q) => (country ? q.eq("country", country) : q);
+  const val = (p) => Number(p[col] ?? 1200);
+
+  // 1) everyone who is online or playing (same priority), best first
+  const hot = [...new Set([...online, ...playing])];
+  let top = [];
+  for (let i = 0; i < hot.length; i += 60) {
+    const { data } = await byCountry(supabase.from("profiles").select(FIELDS).in("id", hot.slice(i, i + 60)));
+    top.push(...(data || []));
+  }
+  top.sort((a, b) => val(b) - val(a));
+  top = top.slice(0, LIMIT);
+
+  // 2) fill the rest of the 100 with the highest-rated offline players
+  if (top.length < LIMIT) {
+    const need = LIMIT - top.length;
+    const exclude = new Set(hot);
+    const { data } = await byCountry(supabase.from("profiles").select(FIELDS)
+      .order(col, { ascending: false }).limit(need + exclude.size));
+    top.push(...(data || []).filter((p) => !exclude.has(p.id)).slice(0, need));
+  }
+  if (mine !== seq) return;
+
+  const list = $("list");
+  list.replaceChildren();
+  if (!top.length) { list.innerHTML = '<div class="empty">No players yet.</div>'; return; }
+
+  top.forEach((p, i) => {
+    const state = playing.has(p.id) ? "playing" : online.has(p.id) ? "online" : "offline";
+    const row = document.createElement("a");
+    row.className = "row";
+    row.href = "player.html?user=" + encodeURIComponent(p.username);
+
+    const rank = document.createElement("div"); rank.className = "rank"; rank.textContent = i + 1;
+    const av = document.createElement("div"); av.className = "av";
+    if (p.avatar_url) {
+      const img = document.createElement("img"); img.src = p.avatar_url; img.alt = "";
+      img.onerror = () => { av.textContent = p.username.charAt(0).toUpperCase(); };
+      av.append(img);
+    } else av.textContent = p.username.charAt(0).toUpperCase();
+
+    const name = document.createElement("div"); name.className = "name";
+    if (p.country) {
+      const f = document.createElement("img"); f.className = "flag"; f.alt = "";
+      f.src = `https://flagcdn.com/w20/${p.country.toLowerCase()}.png`; f.onerror = () => f.remove();
+      name.append(f);
+    }
+    if (p.title) { const b = document.createElement("span"); b.className = "tb"; b.textContent = p.title.toUpperCase(); name.append(b); }
+    name.append(p.username + " ");
+    const r = document.createElement("small"); r.textContent = "(" + Math.round(val(p)) + ")"; name.append(r);
+
+    const st = document.createElement("div"); st.className = "status " + state;
+    const dot = document.createElement("span"); dot.className = "dot";
+    st.append(dot, state);
+
+    row.append(rank, av, name, st);
+    list.append(row);
+  });
+}
+
+{
+  const CODES = "AD AE AF AG AI AL AM AO AR AS AT AU AW AX AZ BA BB BD BE BF BG BH BI BJ BL BM BN BO BQ BR BS BT BW BY BZ CA CC CD CF CG CH CI CK CL CM CN CO CR CU CV CW CX CY CZ DE DJ DK DM DO DZ EC EE EG EH ER ES ET FI FJ FK FM FO FR GA GB GD GE GF GG GH GI GL GM GN GP GQ GR GT GU GW GY HK HN HR HT HU ID IE IL IM IN IQ IR IS IT JE JM JO JP KE KG KH KI KM KN KP KR KW KY KZ LA LB LC LI LK LR LS LT LU LV LY MA MC MD ME MF MG MH MK ML MM MN MO MP MQ MR MS MT MU MV MW MX MY MZ NA NC NE NF NG NI NL NO NP NR NU NZ OM PA PE PF PG PH PK PL PM PN PR PS PT PW PY QA RE RO RS RU RW SA SB SC SD SE SG SH SI SK SL SM SN SO SR SS ST SV SX SY SZ TC TD TG TH TJ TK TL TM TN TO TR TT TV TW TZ UA UG US UY UZ VA VC VE VG VI VN VU WF WS XK YE YT ZA ZM ZW".split(" ");
+  const names = new Intl.DisplayNames(["en"], { type: "region" });
+  const nm = (c) => { try { return names.of(c) || c; } catch { return c; } };
+  CODES.map((c) => [c, nm(c)]).sort((a, b) => a[1].localeCompare(b[1]))
+    .forEach(([c, n]) => $("country").append(new Option(n, c)));
+  const want = (new URLSearchParams(location.search).get("country") || "").toUpperCase();
+  if (CODES.includes(want)) $("country").value = want;
+}
+$("country").addEventListener("change", build);
+$("mode").addEventListener("change", build);
+await loadPlaying();
+await build();
+setInterval(async () => { await loadPlaying(); schedule(); }, 15000);
+</script>
+<script>
+(() => {
+  const N = { CM: "Candidate Master", PM: "Premier Master", NM: "National Master", IM: "International Master", GM: "Grandmaster", SGM: "Super Grandmaster", WC: "World Champion" };
+  const tag = () => document.querySelectorAll(".tb,.title-badge").forEach((e) => {
+    const n = N[e.textContent.trim().toUpperCase()];
+    if (n && e.dataset.tip !== n) e.dataset.tip = n;
+  });
+  let t;
+  new MutationObserver(() => { clearTimeout(t); t = setTimeout(tag, 60); }).observe(document.body, { childList: true, subtree: true });
+  tag();
+})();
+</script>
+<script src="challenges.js"></script>
+</body>
+</html>

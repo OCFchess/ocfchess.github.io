@@ -1,0 +1,273 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="theme-color" content="#101114">
+    <title>Login — CHESS.</title>
+    <style>
+        :root {
+            --background: #101114;
+            --surface: #191b20;
+            --surface-light: #22252c;
+            --border: #30333b;
+            --text: #f4f4f5;
+            --muted: #999da8;
+            --red: #c62828;
+            --red-hover: #e53935;
+        }
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body {
+            min-height: 100vh; background: var(--background); color: var(--text);
+            font-family: Arial, sans-serif; display: flex; flex-direction: column;
+        }
+        header {
+            height: 76px; padding: 0 7%; display: flex; align-items: center;
+            justify-content: space-between; border-bottom: 1px solid var(--border);
+        }
+        .logo {
+            color: white; font-size: 23px; font-weight: 900;
+            text-decoration: none; letter-spacing: -1px;
+        }
+        .logo span { color: var(--red); }
+        header a.back { color: var(--muted); text-decoration: none; font-size: 14px; }
+        header a.back:hover { color: white; }
+        main { flex: 1; display: grid; place-items: center; padding: 40px 20px; }
+        .login-card {
+            width: 100%; max-width: 440px; background: var(--surface);
+            border: 1px solid var(--border); border-radius: 12px; padding: 36px;
+        }
+        h1 { font-size: 29px; margin-bottom: 9px; }
+        .subtitle { color: var(--muted); font-size: 14px; margin-bottom: 28px; line-height: 1.5; }
+        .tabs {
+            display: grid; grid-template-columns: 1fr 1fr; gap: 5px;
+            background: var(--background); padding: 5px; border-radius: 8px; margin-bottom: 25px;
+        }
+        .tab {
+            padding: 11px; border: none; border-radius: 6px; background: transparent;
+            color: var(--muted); font-weight: 700; cursor: pointer;
+        }
+        .tab.active { background: var(--surface-light); color: white; }
+        .field { margin-bottom: 17px; }
+        label { display: block; font-size: 13px; font-weight: 700; margin-bottom: 8px; }
+        input {
+            width: 100%; padding: 13px 14px; border: 1px solid var(--border);
+            border-radius: 7px; background: var(--background); color: white;
+            outline: none; font-size: 14px;
+        }
+        input:focus { border-color: var(--red); }
+        .hint { margin-top: 7px; color: var(--muted); font-size: 11px; line-height: 1.45; }
+        .submit {
+            width: 100%; padding: 14px; margin-top: 8px; border: none; border-radius: 7px;
+            background: var(--red); color: white; font-weight: 800; font-size: 14px;
+            cursor: pointer; transition: .2s;
+        }
+        .submit:hover { background: var(--red-hover); }
+        .submit:disabled { opacity: .6; cursor: not-allowed; }
+        #message {
+            display: none; margin-top: 18px; padding: 12px; border-radius: 7px;
+            font-size: 13px; line-height: 1.5;
+        }
+        #message.error { display: block; background: #351b1d; color: #ffaaaa; border: 1px solid #693034; }
+        #message.success { display: block; background: #193322; color: #a5e5b8; border: 1px solid #285d39; }
+        footer { padding: 22px; text-align: center; color: var(--muted); font-size: 12px; }
+        @media (max-width: 480px) { .login-card { padding: 25px; } }
+    </style>
+</head>
+<body>
+<header>
+    <a href="index.html" class="logo">CHESS<span>.</span></a>
+    <a href="index.html" class="back">← Back to home</a>
+</header>
+
+<main>
+    <section class="login-card">
+        <h1 id="heading">Welcome back</h1>
+        <p class="subtitle" id="subtitle">Log in to continue your chess journey.</p>
+
+        <div class="tabs" id="tabs">
+            <button class="tab active" id="loginTab" type="button">Log In</button>
+            <button class="tab" id="signupTab" type="button">Sign Up</button>
+        </div>
+
+        <form id="authForm">
+            <div class="field" id="usernameField" hidden>
+                <label for="username">Chess username</label>
+                <input
+                    type="text" id="username" name="username"
+                    placeholder="Choose your username" minlength="3" maxlength="16"
+                    pattern="[A-Za-z0-9_]{3,16}" autocomplete="username"
+                    autocapitalize="none" spellcheck="false"
+                >
+                <p class="hint">3–16 characters. Letters, numbers and underscores only. Your username is public.</p>
+            </div>
+
+            <div class="field">
+                <label for="email">Email address</label>
+                <input type="email" id="email" placeholder="you@example.com"
+                    autocomplete="email" required>
+            </div>
+
+            <div class="field">
+                <label for="password">Password</label>
+                <input type="password" id="password" placeholder="Enter your password"
+                    autocomplete="current-password" minlength="6" required>
+            </div>
+
+            <div class="field" id="confirmField" hidden>
+                <label for="confirmPassword">Confirm password</label>
+                <input type="password" id="confirmPassword" placeholder="Enter your password again"
+                    autocomplete="new-password" minlength="6">
+            </div>
+
+            <button class="submit" id="submitButton" type="submit">Log In</button>
+        </form>
+
+        <div id="message" role="status" aria-live="polite"></div>
+    </section>
+</main>
+
+<footer>Independent chess platform · Not affiliated with FIDE</footer>
+
+<script type="module">
+    import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+
+    const SUPABASE_URL = "https://hloyebtuqozxalewkbgp.supabase.co";
+    const SUPABASE_KEY = "sb_publishable_LhVKo17KVegP0q_qWqghnw_wkOYn3l4";
+    const supabase = createClient(SUPABASE_URL, SUPABASE_KEY);
+
+    const form = document.getElementById("authForm");
+    const loginTab = document.getElementById("loginTab");
+    const signupTab = document.getElementById("signupTab");
+    const heading = document.getElementById("heading");
+    const subtitle = document.getElementById("subtitle");
+    const submitButton = document.getElementById("submitButton");
+    const usernameField = document.getElementById("usernameField");
+    const usernameInput = document.getElementById("username");
+    const confirmField = document.getElementById("confirmField");
+    const passwordInput = document.getElementById("password");
+    const confirmInput = document.getElementById("confirmPassword");
+    const message = document.getElementById("message");
+
+    let mode = "login";
+
+    function showMessage(text, type) {
+        message.textContent = text;
+        message.className = type;
+    }
+
+    function clearMessage() {
+        message.textContent = "";
+        message.className = "";
+    }
+
+    function setMode(newMode) {
+        mode = newMode;
+        clearMessage();
+        const signingUp = mode === "signup";
+
+        loginTab.classList.toggle("active", !signingUp);
+        signupTab.classList.toggle("active", signingUp);
+        heading.textContent = signingUp ? "Create your account" : "Welcome back";
+        subtitle.textContent = signingUp
+            ? "Choose your CHESS. username and join the competitive chess community."
+            : "Log in to continue your chess journey.";
+
+        submitButton.textContent = signingUp ? "Create Account" : "Log In";
+        usernameField.hidden = !signingUp;
+        usernameInput.required = signingUp;
+        confirmField.hidden = !signingUp;
+        confirmInput.required = signingUp;
+        passwordInput.autocomplete = signingUp ? "new-password" : "current-password";
+    }
+
+    loginTab.addEventListener("click", () => setMode("login"));
+    signupTab.addEventListener("click", () => setMode("signup"));
+
+    function friendlyAuthError(error) {
+        const text = (error?.message || "").toLowerCase();
+        if (text.includes("username") && (text.includes("reserved") || text.includes("already taken"))) {
+            return "That username is reserved or already taken. Please choose another.";
+        }
+        if (text.includes("duplicate key") || text.includes("unique constraint") ||
+            text.includes("profiles_username_lower_idx")) {
+            return "That username is already taken. Please choose another.";
+        }
+        if (text.includes("already registered") || text.includes("already exists")) {
+            return "An account with that email already exists. Try logging in.";
+        }
+        return error?.message || "Something went wrong. Please try again.";
+    }
+
+    form.addEventListener("submit", async (event) => {
+        event.preventDefault();
+        clearMessage();
+
+        const email = document.getElementById("email").value.trim();
+        const password = passwordInput.value;
+        const username = usernameInput.value.trim();
+
+        if (mode === "signup") {
+            if (!/^[A-Za-z0-9_]{3,16}$/.test(username)) {
+                showMessage("Username must be 3–16 characters and contain only letters, numbers or underscores.", "error");
+                usernameInput.focus();
+                return;
+            }
+            if (password !== confirmInput.value) {
+                showMessage("Your passwords do not match.", "error");
+                return;
+            }
+        }
+
+        submitButton.disabled = true;
+        submitButton.textContent = "Please wait...";
+
+        try {
+            if (mode === "signup") {
+                const { data, error } = await supabase.auth.signUp({
+                    email,
+                    password,
+                    options: {
+                        data: { username }
+                    }
+                });
+
+                if (error) throw error;
+
+                if (data.session) {
+                    showMessage("Account created! Redirecting...", "success");
+                    setTimeout(() => window.location.href = "index.html", 1200);
+                } else {
+                    showMessage(
+                        "Account created! Check your email for a confirmation link. Your username will be ready when you confirm your account.",
+                        "success"
+                    );
+                }
+            } else {
+                const { error } = await supabase.auth.signInWithPassword({ email, password });
+                if (error) throw error;
+
+                showMessage("Login successful! Redirecting...", "success");
+                setTimeout(() => window.location.href = "index.html", 1000);
+            }
+        } catch (error) {
+            showMessage(friendlyAuthError(error), "error");
+        } finally {
+            submitButton.disabled = false;
+            submitButton.textContent = mode === "signup" ? "Create Account" : "Log In";
+        }
+    });
+
+    const { data: { session } } = await supabase.auth.getSession();
+    if (session) {
+        heading.textContent = "You're already logged in";
+        subtitle.textContent = "You already have an active account session.";
+        form.hidden = true;
+        document.getElementById("tabs").hidden = true;
+        showMessage("You are signed in. You can return to the homepage.", "success");
+    }
+
+    window.supabaseClient = supabase;
+</script>
+</body>
+</html>

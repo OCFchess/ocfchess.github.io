@@ -1,0 +1,247 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="theme-color" content="#101114">
+<title>Tournaments — CHESS.</title>
+<style>
+:root{--background:#101114;--surface:#191b20;--surface-light:#22252c;--border:#30333b;--text:#f4f4f5;--muted:#999da8;--red:#c62828;--red-hover:#e53935}
+*{box-sizing:border-box;margin:0;padding:0}
+body{min-height:100vh;background:var(--background);color:var(--text);font-family:Arial,Helvetica,sans-serif;display:flex;flex-direction:column}
+a{color:inherit;text-decoration:none}
+header{height:76px;padding:0 8%;display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid var(--border);background:#141519}
+.logo{font-size:23px;font-weight:800;letter-spacing:-1px}.logo span{color:var(--red-hover)}
+nav{display:flex;align-items:center;gap:28px}
+nav a{color:var(--muted);font-size:14px}nav a:hover{color:var(--text)}
+nav a.login-button{background:var(--red);color:#fff;padding:10px 17px;border-radius:6px;font-weight:700}
+nav a.login-button:hover{background:var(--red-hover)}
+.tb{display:inline-block;background:#A71924;color:#fff;font-size:10px;font-weight:900;padding:2px 5px;border-radius:3px;margin-right:6px;letter-spacing:.3px;vertical-align:middle}
+main{flex:1;width:min(860px,92%);margin:44px auto 80px}
+h1{font-size:30px;letter-spacing:-1px;margin-bottom:8px}
+.sub{color:var(--muted);font-size:14px;line-height:1.6;margin-bottom:26px}
+.card{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:22px;margin-bottom:16px}
+.top{display:flex;justify-content:space-between;gap:16px;flex-wrap:wrap;align-items:flex-start}
+.card h2{font-size:20px;letter-spacing:-.4px;overflow-wrap:anywhere}
+.tags{display:flex;gap:8px;flex-wrap:wrap;margin-top:10px}
+.tag{font-size:12px;font-weight:700;padding:4px 9px;border-radius:5px;background:var(--surface-light);border:1px solid var(--border);color:#d6d8de}
+.tag.req{border-color:#693034;color:#ffaaaa}
+.meta{color:var(--muted);font-size:13px;margin-top:12px;line-height:1.7}
+.meta strong{color:var(--text)}
+.actions{display:flex;flex-direction:column;align-items:flex-end;gap:6px;min-width:150px}
+button,.btn{border:0;border-radius:7px;padding:11px 18px;background:var(--red);color:#fff;font-weight:800;font-size:13px;cursor:pointer;display:inline-block;text-align:center}
+button:hover,.btn:hover{background:var(--red-hover)}
+button.alt{background:var(--surface-light);border:1px solid var(--border)}
+button.alt:hover{background:#30333b}
+button:disabled{opacity:.55;cursor:not-allowed}
+.why{font-size:12px;color:var(--muted);max-width:210px;text-align:right}
+.err{color:#ff7777;font-size:12px;max-width:210px;text-align:right}
+details{margin-top:14px;border-top:1px solid var(--border);padding-top:12px}
+summary{cursor:pointer;font-size:13px;font-weight:700;color:var(--muted)}
+.players{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:6px 14px;margin-top:12px;font-size:13px}
+.players a:hover{color:#fff;text-decoration:underline}
+.players small{color:var(--muted)}
+.empty{padding:34px;text-align:center;color:var(--muted);font-size:14px;line-height:1.7}
+footer{border-top:1px solid var(--border);padding:24px 8%;color:var(--muted);font-size:12px;text-align:center}
+@media(max-width:600px){header{padding:0 5%}nav{gap:12px}nav a:not(.login-button):not(#logoutLink){display:none}.actions{align-items:stretch;width:100%}.why,.err{text-align:left;max-width:none}}
+
+.tb[data-tip],.title-badge[data-tip]{position:relative;cursor:help}
+.tb[data-tip]:hover::after,.title-badge[data-tip]:hover::after{content:attr(data-tip);position:absolute;bottom:calc(100% + 7px);left:50%;transform:translateX(-50%);background:#000;color:#fff;font-size:11px;font-weight:700;letter-spacing:0;text-transform:none;white-space:nowrap;padding:5px 9px;border-radius:5px;border:1px solid #30333b;z-index:60;pointer-events:none}
+@media(max-width:700px){
+  header,.topbar{height:auto!important;flex-wrap:wrap;padding:10px 4%!important;gap:6px 12px}
+  header nav,.topbar nav{width:100%;overflow-x:auto;gap:18px!important;padding:4px 0 6px;scrollbar-width:none}
+  header nav a,.topbar nav a{display:inline-block!important;white-space:nowrap}
+  header nav a[hidden],.topbar nav a[hidden]{display:none!important}
+  button,select,.btn{min-height:44px}
+}
+</style>
+</head>
+<body>
+<header>
+  <a href="index.html" class="logo">CHESS<span>.</span></a>
+  <nav>
+    <a href="play.html">Play</a>
+    <a href="rankings.html">Rankings</a>
+    <a href="tournaments.html">Tournaments</a>
+    <a href="player.html">Players</a>
+    <a href="login.html" class="login-button" id="authLink">Log In</a>
+    <a href="#" id="logoutLink" hidden>Log out</a>
+  </nav>
+</header>
+
+<main>
+  <h1>Tournaments</h1>
+  <p class="sub">Official events hosted by the CHESS. staff. Some tournaments require a minimum rating in their time control.</p>
+  <div id="list"><div class="empty">Loading…</div></div>
+</main>
+
+<footer>Independent chess platform · Not affiliated with FIDE</footer>
+
+<script type="module">
+import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+
+const supabase = createClient(
+  "https://hloyebtuqozxalewkbgp.supabase.co",
+  "sb_publishable_LhVKo17KVegP0q_qWqghnw_wkOYn3l4"
+);
+const $ = (id) => document.getElementById(id);
+
+/* ---------- session, nav, presence ---------- */
+const { data: { session } } = await supabase.auth.getSession();
+const user = session?.user ?? null;
+let myRatings = null;
+
+if (user) {
+  const { data: me } = await supabase.from("profiles")
+    .select("username,title,bullet_rating,blitz_rating,rapid_rating,classical_rating")
+    .eq("id", user.id).maybeSingle();
+  myRatings = me;
+  const name = me?.username || user.user_metadata?.username || "Account";
+  const link = $("authLink");
+  link.href = "player.html?user=" + encodeURIComponent(name);
+  link.textContent = "";
+  if (me?.title) { const b = document.createElement("span"); b.className = "tb"; b.textContent = me.title.toUpperCase(); link.append(b); }
+  link.append(name);
+  $("logoutLink").hidden = false;
+  $("logoutLink").onclick = async (e) => { e.preventDefault(); await supabase.auth.signOut(); location.href = "index.html"; };
+
+  const presence = supabase.channel("online", { config: { presence: { key: user.id } } });
+  presence.subscribe(async (s) => { if (s === "SUBSCRIBED") await presence.track({ at: Date.now() }); });
+}
+
+/* ---------- tournaments ---------- */
+const errors = {}; // per-tournament error text
+const openDetails = new Set();
+
+const fmtTc = (t) => `${t.base_ms / 60000}+${t.inc_ms / 1000}`;
+function countdown(start) {
+  const s = Math.floor((new Date(start) - Date.now()) / 1000);
+  if (s <= 0) return "started";
+  const d = Math.floor(s / 86400), h = Math.floor((s % 86400) / 3600), m = Math.floor((s % 3600) / 60), sec = s % 60;
+  if (d) return `in ${d}d ${h}h`;
+  if (h) return `in ${h}h ${m}m`;
+  return `in ${m}m ${String(sec).padStart(2, "0")}s`;
+}
+
+async function load() {
+  const { data, error } = await supabase.from("tournaments")
+    .select("*, tournament_players(player_id, profiles(username,title,avatar_url,bullet_rating,blitz_rating,rapid_rating,classical_rating))")
+    .order("starts_at");
+  const list = $("list");
+  if (error) { console.error(error); list.innerHTML = '<div class="empty">Couldn\'t load tournaments. Try again in a moment.</div>'; return; }
+  if (!data.length) {
+    list.innerHTML = '<div class="empty">No tournaments right now.<br>Staff can host one from Discord with <strong>/tournament setup</strong>.</div>';
+    return;
+  }
+  list.replaceChildren(...data.map(render));
+}
+
+function render(t) {
+  const col = t.category + "_rating";
+  const players = (t.tournament_players || []).filter((x) => x.profiles)
+    .sort((a, b) => Number(b.profiles[col] ?? 1200) - Number(a.profiles[col] ?? 1200));
+  const joined = user && players.some((x) => x.player_id === user.id);
+  const started = new Date(t.starts_at) <= new Date();
+  const full = t.max_players != null && players.length >= t.max_players;
+  const myRating = myRatings ? Number(myRatings[col] ?? 1200) : null;
+  const eligible = myRating == null || myRating >= t.min_rating;
+
+  const card = document.createElement("div");
+  card.className = "card";
+
+  const top = document.createElement("div"); top.className = "top";
+  const info = document.createElement("div");
+  const h = document.createElement("h2"); h.textContent = t.name;
+  const tags = document.createElement("div"); tags.className = "tags";
+  const tag = (text, cls = "") => { const s = document.createElement("span"); s.className = "tag " + cls; s.textContent = text; return s; };
+  tags.append(
+    tag(`${fmtTc(t)} · ${t.category}`),
+    t.min_rating > 0 ? tag(`Min ${t.min_rating} ${t.category}`, "req") : tag("Open to all"),
+    tag(t.max_players ? `${players.length}/${t.max_players} players` : `${players.length} players`)
+  );
+  const meta = document.createElement("div"); meta.className = "meta";
+  const when = document.createElement("span");
+  when.dataset.start = t.starts_at;
+  const startText = new Date(t.starts_at).toLocaleString(undefined, { dateStyle: "medium", timeStyle: "short" });
+  meta.append("Starts ", Object.assign(document.createElement("strong"), { textContent: startText }), " · ", when);
+  when.textContent = countdown(t.starts_at);
+  info.append(h, tags, meta);
+
+  const actions = document.createElement("div"); actions.className = "actions";
+  const note = (text, cls = "why") => { const d = document.createElement("div"); d.className = cls; d.textContent = text; return d; };
+
+  if (!user) {
+    const a = document.createElement("a"); a.className = "btn"; a.href = "login.html"; a.textContent = "Log in to join";
+    actions.append(a);
+  } else if (joined) {
+    const b = document.createElement("button"); b.className = "alt"; b.textContent = started ? "Registered" : "Leave";
+    b.disabled = started;
+    b.onclick = () => act(t.id, "leave_tournament", b);
+    actions.append(b);
+  } else if (started) {
+    const b = document.createElement("button"); b.disabled = true; b.textContent = "Registration closed";
+    actions.append(b);
+  } else if (!eligible) {
+    const b = document.createElement("button"); b.disabled = true; b.textContent = "Join";
+    actions.append(b, note(`Requires ${t.min_rating}+ ${t.category}. Your rating: ${Math.round(myRating)}.`));
+  } else if (full) {
+    const b = document.createElement("button"); b.disabled = true; b.textContent = "Full";
+    actions.append(b);
+  } else {
+    const b = document.createElement("button"); b.textContent = "Join";
+    b.onclick = () => act(t.id, "join_tournament", b);
+    actions.append(b);
+  }
+  if (errors[t.id]) actions.append(note(errors[t.id], "err"));
+
+  top.append(info, actions);
+  card.append(top);
+
+  const det = document.createElement("details");
+  det.open = openDetails.has(t.id);
+  det.addEventListener("toggle", () => det.open ? openDetails.add(t.id) : openDetails.delete(t.id));
+  const sum = document.createElement("summary"); sum.textContent = `Players (${players.length})`;
+  const grid = document.createElement("div"); grid.className = "players";
+  if (!players.length) grid.textContent = "Nobody has registered yet.";
+  for (const x of players) {
+    const p = x.profiles;
+    const a = document.createElement("a"); a.href = "player.html?user=" + encodeURIComponent(p.username);
+    if (p.title) { const b = document.createElement("span"); b.className = "tb"; b.textContent = p.title.toUpperCase(); a.append(b); }
+    a.append(p.username + " ");
+    const s = document.createElement("small"); s.textContent = "(" + Math.round(Number(p[col] ?? 1200)) + ")"; a.append(s);
+    grid.append(a);
+  }
+  det.append(sum, grid);
+  card.append(det);
+  return card;
+}
+
+async function act(id, fn, button) {
+  button.disabled = true;
+  delete errors[id];
+  const { error } = await supabase.rpc(fn, { p_id: id });
+  if (error) errors[id] = error.message;
+  await load();
+}
+
+setInterval(() => {
+  document.querySelectorAll("[data-start]").forEach((el) => { el.textContent = countdown(el.dataset.start); });
+}, 1000);
+setInterval(load, 30000);
+await load();
+</script>
+<script>
+(() => {
+  const N = { CM: "Candidate Master", PM: "Premier Master", NM: "National Master", IM: "International Master", GM: "Grandmaster", SGM: "Super Grandmaster", WC: "World Champion" };
+  const tag = () => document.querySelectorAll(".tb,.title-badge").forEach((e) => {
+    const n = N[e.textContent.trim().toUpperCase()];
+    if (n && e.dataset.tip !== n) e.dataset.tip = n;
+  });
+  let t;
+  new MutationObserver(() => { clearTimeout(t); t = setTimeout(tag, 60); }).observe(document.body, { childList: true, subtree: true });
+  tag();
+})();
+</script>
+<script src="challenges.js"></script>
+</body>
+</html>
