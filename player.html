@@ -1,0 +1,527 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="theme-color" content="#101114">
+  <title>Players — CHESS.</title>
+  <style>
+    :root {
+      --background: #101114;
+      --surface: #191b20;
+      --surface-light: #22252c;
+      --border: #30333b;
+      --text: #f4f4f5;
+      --muted: #999da8;
+      --red: #c62828;
+      --red-hover: #e53935;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      min-height: 100vh;
+      background: var(--background);
+      color: var(--text);
+      font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    }
+    a { color: inherit; text-decoration: none; }
+    button, input { font: inherit; }
+    .topbar {
+      height: 72px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 24px;
+      padding: 0 max(5%, calc((100% - 1180px) / 2));
+      border-bottom: 1px solid var(--border);
+      background: #141519;
+    }
+    .brand { font-size: 25px; font-weight: 950; letter-spacing: -1.5px; }
+    .brand span { color: var(--red-hover); }
+    nav { display: flex; align-items: center; gap: 25px; color: var(--muted); font-size: 14px; }
+    nav a:hover { color: white; }
+    .nav-login {
+      color: white;
+      background: var(--red);
+      padding: 10px 17px;
+      border-radius: 6px;
+      font-weight: 750;
+    }
+    .nav-login:hover { color: white; background: var(--red-hover); }
+    .tb {
+      display: inline-block; background: #A71924; color: #fff; font-size: 10px; font-weight: 900;
+      padding: 2px 5px; border-radius: 3px; margin-right: 6px; letter-spacing: .3px; vertical-align: middle;
+    }
+    main { width: min(1050px, 90%); margin: 48px auto 80px; }
+    .eyebrow { color: var(--red-hover); text-transform: uppercase; letter-spacing: 2px; font-size: 11px; font-weight: 900; }
+    .profile-card {
+      background: linear-gradient(135deg, #1d2027, #17191e 70%);
+      border: 1px solid var(--border);
+      border-radius: 13px;
+      padding: 30px;
+      display: flex;
+      align-items: center;
+      gap: 24px;
+      min-height: 190px;
+    }
+    .avatar {
+      width: 112px; height: 112px; flex: 0 0 112px;
+      display: grid; place-items: center;
+      border-radius: 12px;
+      background: #292d36;
+      border: 1px solid #414653;
+      color: #fff;
+      font-size: 42px; font-weight: 900;
+      overflow: hidden;
+    }
+    .avatar img, .rav img { width: 100%; height: 100%; object-fit: cover; display: block; }
+    .identity { min-width: 0; flex: 1; }
+    .name-line { display: flex; align-items: center; flex-wrap: wrap; gap: 10px; }
+    h1 { margin: 0; font-size: clamp(27px, 5vw, 39px); letter-spacing: -1.2px; overflow-wrap: anywhere; }
+    .title-badge {
+      display: inline-flex; align-items: center; justify-content: center;
+      background: #A71924; color: #fff; font-size: 11px; font-weight: 900;
+      padding: 4px 7px; border-radius: 4px; letter-spacing: .3px;
+    }
+    .joined { color: var(--muted); font-size: 13px; margin-top: 9px; }
+    .profile-note { color: var(--muted); font-size: 13px; margin-top: 18px; }
+    .own-tools { display: flex; align-items: center; flex-wrap: wrap; gap: 9px; margin-top: 16px; }
+    .btn {
+      display: inline-block; border: 0; border-radius: 7px; padding: 10px 16px; color: white;
+      background: var(--red); font-weight: 800; font-size: 13px; cursor: pointer;
+    }
+    .btn:hover { background: var(--red-hover); }
+    .btn.alt { background: var(--surface-light); border: 1px solid var(--border); }
+    .btn.alt:hover { background: #30333b; }
+    .section-heading { display: flex; align-items: end; justify-content: space-between; gap: 16px; margin: 34px 0 15px; }
+    h2 { margin: 0; font-size: 19px; letter-spacing: -.3px; }
+    .section-heading p { margin: 0; color: var(--muted); font-size: 12px; }
+    .ratings { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 13px; }
+    .rating-card { background: var(--surface); border: 1px solid var(--border); border-radius: 10px; padding: 19px; }
+    .rating-label { color: var(--muted); font-size: 12px; font-weight: 750; text-transform: uppercase; letter-spacing: 1px; }
+    .rating-value { margin-top: 10px; font-size: 31px; font-weight: 900; letter-spacing: -1px; font-variant-numeric: tabular-nums; }
+    .rating-sub { margin-top: 5px; color: var(--muted); font-size: 11px; }
+    .about-card { background: var(--surface); border: 1px solid var(--border); border-radius: 10px; padding: 22px; }
+    .about-card p { color: var(--muted); line-height: 1.65; margin: 8px 0 0; font-size: 14px; }
+    .lookup-wrap { max-width: 560px; margin: 75px auto; text-align: center; }
+    .lookup-wrap h1 { font-size: 34px; }
+    .lookup-wrap p { color: var(--muted); line-height: 1.6; }
+    .lookup-form { display: flex; gap: 9px; margin-top: 24px; }
+    input[type="text"] {
+      min-width: 0; flex: 1; padding: 13px 14px; color: white;
+      background: var(--surface); border: 1px solid var(--border); border-radius: 7px; outline: none;
+    }
+    input[type="text"]:focus { border-color: var(--red-hover); }
+    .lookup-form button {
+      border: 0; border-radius: 7px; padding: 0 19px; color: white;
+      background: var(--red); font-weight: 800; cursor: pointer;
+    }
+    .lookup-form button:hover { background: var(--red-hover); }
+    .results { margin-top: 14px; display: grid; gap: 8px; text-align: left; }
+    .result {
+      display: flex; align-items: center; gap: 12px; padding: 10px 13px;
+      background: var(--surface); border: 1px solid var(--border); border-radius: 8px;
+    }
+    .result:hover { border-color: var(--red-hover); }
+    .rav {
+      width: 38px; height: 38px; flex: 0 0 38px; border-radius: 8px; background: #292d36;
+      display: grid; place-items: center; font-weight: 900; overflow: hidden;
+    }
+    .rname { flex: 1; min-width: 0; font-weight: 700; overflow-wrap: anywhere; }
+    .rrate { color: var(--muted); font-size: 12px; }
+    .message { margin-top: 14px; min-height: 20px; color: var(--muted); font-size: 13px; }
+    .message.error { color: #ff7777; }
+    .own-tools .message { margin: 0; }
+    .flag { height: 14px; border-radius: 2px; vertical-align: middle; margin-right: 7px; }
+    select.btn { appearance: auto; max-width: 190px; }
+    .hidden { display: none !important; }
+    footer {
+      border-top: 1px solid var(--border); padding: 25px 5%;
+      color: var(--muted); text-align: center; font-size: 12px;
+    }
+    footer strong { color: #e7e7e9; }
+    @media (max-width: 720px) {
+      .topbar { height: auto; min-height: 66px; padding: 15px 5%; }
+      nav { gap: 13px; font-size: 12px; }
+      .profile-card { padding: 21px; gap: 16px; }
+      .avatar { width: 78px; height: 78px; flex-basis: 78px; font-size: 30px; }
+      .ratings { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    }
+    @media (max-width: 420px) {
+      .profile-card { align-items: flex-start; flex-direction: column; }
+      .lookup-form { flex-direction: column; }
+      .lookup-form button { min-height: 44px; }
+    }
+  
+.tb[data-tip],.title-badge[data-tip]{position:relative;cursor:help}
+.tb[data-tip]:hover::after,.title-badge[data-tip]:hover::after{content:attr(data-tip);position:absolute;bottom:calc(100% + 7px);left:50%;transform:translateX(-50%);background:#000;color:#fff;font-size:11px;font-weight:700;letter-spacing:0;text-transform:none;white-space:nowrap;padding:5px 9px;border-radius:5px;border:1px solid #30333b;z-index:60;pointer-events:none}
+@media(max-width:700px){
+  header,.topbar{height:auto!important;flex-wrap:wrap;padding:10px 4%!important;gap:6px 12px}
+  header nav,.topbar nav{width:100%;overflow-x:auto;gap:18px!important;padding:4px 0 6px;scrollbar-width:none}
+  header nav a,.topbar nav a{display:inline-block!important;white-space:nowrap}
+  header nav a[hidden],.topbar nav a[hidden]{display:none!important}
+  button,select,.btn{min-height:44px}
+}
+</style>
+</head>
+<body>
+  <header class="topbar">
+    <a class="brand" href="index.html">CHESS<span>.</span></a>
+    <nav aria-label="Main navigation">
+      <a href="play.html">Play</a>
+      <a href="rankings.html">Rankings</a>
+      <a href="tournaments.html">Tournaments</a>
+      <a href="player.html">Players</a>
+      <a href="login.html" class="nav-login" id="authLink">Log In</a>
+      <a href="#" id="logoutLink" hidden>Log out</a>
+    </nav>
+  </header>
+
+  <main>
+    <section id="lookup" class="lookup-wrap hidden">
+      <div class="eyebrow">CHESS. players</div>
+      <h1>Find a player.</h1>
+      <p>Start typing a CHESS. username.</p>
+      <form id="lookupForm" class="lookup-form">
+        <input type="text" id="usernameInput" maxlength="16" placeholder="Enter username" autocomplete="off" autocapitalize="none" spellcheck="false" required>
+        <button type="submit">Find player</button>
+      </form>
+      <div id="results" class="results"></div>
+      <div id="lookupMessage" class="message" role="status"></div>
+    </section>
+
+    <section id="profile" class="hidden">
+      <div class="eyebrow">Player profile</div>
+      <div class="profile-card">
+        <div class="avatar" id="avatar">?</div>
+        <div class="identity">
+          <div class="name-line">
+            <span id="titleBadge" class="title-badge hidden"></span>
+            <h1 id="playerName">Player</h1>
+          </div>
+          <div class="joined" id="joinedDate">Member since —</div>
+          <div class="joined" id="countryLine"></div>
+          <div class="profile-note">CHESS. competitive player</div>
+          <div id="ownTools" class="own-tools hidden">
+            <label class="btn" for="avatarFile">Change picture</label>
+            <input type="file" id="avatarFile" accept="image/png,image/jpeg,image/webp" hidden>
+            <button id="removeAvatar" type="button" class="btn alt">Remove</button>
+            <select id="countrySel" class="btn alt" aria-label="Country"></select>
+            <span id="avatarMsg" class="message" role="status"></span>
+          </div>
+        </div>
+      </div>
+
+      <div class="section-heading">
+        <h2>Ratings</h2>
+        <p>Current platform ratings</p>
+      </div>
+      <div class="ratings">
+        <article class="rating-card"><div class="rating-label">Bullet</div><div class="rating-value" id="bulletRating">—</div><div class="rating-sub">Glicko-2 rating</div></article>
+        <article class="rating-card"><div class="rating-label">Blitz</div><div class="rating-value" id="blitzRating">—</div><div class="rating-sub">Glicko-2 rating</div></article>
+        <article class="rating-card"><div class="rating-label">Rapid</div><div class="rating-value" id="rapidRating">—</div><div class="rating-sub">Glicko-2 rating</div></article>
+        <article class="rating-card"><div class="rating-label">Classical</div><div class="rating-value" id="classicalRating">—</div><div class="rating-sub">Glicko-2 rating</div></article>
+      </div>
+
+      <div class="section-heading"><h2>About</h2></div>
+      <div class="about-card">
+        <h2 id="aboutName">Player</h2>
+        <p>This player's CHESS. profile. More profile details, game statistics, achievements and activity will appear here as those features are added.</p>
+      </div>
+    </section>
+
+    <section id="notFound" class="lookup-wrap hidden">
+      <div class="eyebrow">CHESS. players</div>
+      <h1>Player not found.</h1>
+      <p id="notFoundText">We couldn't find that username.</p>
+      <a class="nav-login" href="player.html" style="display:inline-block;margin-top:12px">Search again</a>
+    </section>
+  </main>
+
+  <footer><strong>CHESS.</strong> — If she leaves you for another, play a chess game with her mother.</footer>
+
+  <script type="module">
+    import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+
+    const SUPABASE_URL = "https://hloyebtuqozxalewkbgp.supabase.co";
+    const SUPABASE_KEY = "sb_publishable_LhVKo17KVegP0q_qWqghnw_wkOYn3l4";
+    const supabase = createClient(SUPABASE_URL, SUPABASE_KEY);
+
+    const $ = (id) => document.getElementById(id);
+    const requestedUsername = new URLSearchParams(window.location.search).get("user");
+    const escLike = (t) => t.replace(/[\\%_]/g, "\\$&"); // "_" is a wildcard in ilike
+
+    /* ---------- session + nav ---------- */
+    const { data: { session } } = await supabase.auth.getSession();
+    const currentUser = session?.user ?? null;
+
+    if (currentUser) {
+      const { data: me } = await supabase.from("profiles").select("username,title")
+        .eq("id", currentUser.id).maybeSingle();
+      const name = me?.username || currentUser.user_metadata?.username || "Account";
+      const link = $("authLink");
+      link.href = "player.html?user=" + encodeURIComponent(name);
+      link.textContent = "";
+      if (me?.title) {
+        const b = document.createElement("span");
+        b.className = "tb";
+        b.textContent = me.title.toUpperCase();
+        link.append(b);
+      }
+      link.append(name);
+      // Show as "online" on the rankings page
+      const presence = supabase.channel("online", { config: { presence: { key: currentUser.id } } });
+      presence.subscribe(async (st) => { if (st === "SUBSCRIBED") await presence.track({ at: Date.now() }); });
+
+      const out = $("logoutLink");
+      out.hidden = false;
+      out.onclick = async (e) => {
+        e.preventDefault();
+        await supabase.auth.signOut();
+        location.href = "index.html";
+      };
+    }
+
+    /* ---------- helpers ---------- */
+    function show(id) {
+      ["lookup", "profile", "notFound"].forEach((s) => $(s).classList.add("hidden"));
+      $(id).classList.remove("hidden");
+    }
+
+    function fillAvatar(el, p) {
+      el.textContent = "";
+      if (p.avatar_url) {
+        const img = document.createElement("img");
+        img.src = p.avatar_url;
+        img.alt = "";
+        img.onerror = () => { el.textContent = p.username.charAt(0).toUpperCase(); };
+        el.append(img);
+      } else {
+        el.textContent = p.username.charAt(0).toUpperCase();
+      }
+    }
+
+    function formatDate(value) {
+      if (!value) return "Member since —";
+      const date = new Date(value);
+      if (Number.isNaN(date.getTime())) return "Member since —";
+      return "Joined " + date.toLocaleDateString(undefined, { year: "numeric", month: "long" });
+    }
+
+    /* ---------- lookup with title prefix ---------- */
+    let seq = 0, timer;
+    async function search() {
+      const q = $("usernameInput").value.trim();
+      const mine = ++seq;
+      const box = $("results");
+      if (q.length < 2) { box.replaceChildren(); $("lookupMessage").textContent = ""; return; }
+      const { data, error } = await supabase.from("profiles")
+        .select("username,title,avatar_url,blitz_rating")
+        .ilike("username", escLike(q) + "%").order("username").limit(8);
+      if (mine !== seq) return;
+      box.replaceChildren();
+      if (error) {
+        $("lookupMessage").textContent = "Search failed. Please try again.";
+        $("lookupMessage").classList.add("error");
+        return;
+      }
+      $("lookupMessage").classList.remove("error");
+      $("lookupMessage").textContent = data.length ? "" : "No players found.";
+      for (const p of data) {
+        const row = document.createElement("a");
+        row.className = "result";
+        row.href = "?user=" + encodeURIComponent(p.username);
+        const av = document.createElement("div");
+        av.className = "rav";
+        fillAvatar(av, p);
+        const nm = document.createElement("div");
+        nm.className = "rname";
+        if (p.title) {
+          const b = document.createElement("span");
+          b.className = "tb";
+          b.textContent = p.title.toUpperCase();
+          nm.append(b);
+        }
+        nm.append(p.username);
+        const rt = document.createElement("div");
+        rt.className = "rrate";
+        rt.textContent = Math.round(Number(p.blitz_rating ?? 1200)) + " blitz";
+        row.append(av, nm, rt);
+        box.append(row);
+      }
+    }
+    $("usernameInput").addEventListener("input", () => { clearTimeout(timer); timer = setTimeout(search, 200); });
+    $("lookupForm").addEventListener("submit", (event) => {
+      event.preventDefault();
+      const username = $("usernameInput").value.trim();
+      if (username) location.href = "?user=" + encodeURIComponent(username);
+    });
+
+    /* ---------- profile ---------- */
+    let profile = null;
+
+    async function loadPlayer(username) {
+      const clean = username.trim();
+      if (!/^[A-Za-z0-9_]{3,16}$/.test(clean)) {
+        show("notFound");
+        $("notFoundText").textContent = "That username format isn't valid.";
+        return;
+      }
+      show("lookup");
+      $("lookupMessage").textContent = "Loading player…";
+
+      const { data, error } = await supabase.from("profiles")
+        .select("id, username, title, avatar_url, country, bullet_rating, blitz_rating, rapid_rating, classical_rating, created_at")
+        .ilike("username", escLike(clean)).maybeSingle();
+
+      if (error) {
+        $("lookupMessage").textContent = "Couldn't load the profile. Please try again.";
+        $("lookupMessage").classList.add("error");
+        console.error("Profile lookup failed:", error);
+        return;
+      }
+      if (!data) {
+        show("notFound");
+        $("notFoundText").textContent = `There is no CHESS. account with the username "${clean}".`;
+        return;
+      }
+
+      profile = data;
+      $("playerName").textContent = data.username;
+      $("aboutName").textContent = data.username;
+      fillAvatar($("avatar"), data);
+      $("joinedDate").textContent = formatDate(data.created_at);
+      renderCountry(data);
+
+      const title = (data.title || "").trim();
+      if (title) {
+        $("titleBadge").textContent = title.toUpperCase();
+        $("titleBadge").classList.remove("hidden");
+      } else {
+        $("titleBadge").classList.add("hidden");
+      }
+
+      for (const mode of ["bullet", "blitz", "rapid", "classical"]) {
+        $(mode + "Rating").textContent = Math.round(Number(data[mode + "_rating"] ?? 1200)).toLocaleString();
+      }
+      $("ownTools").classList.toggle("hidden", !(currentUser && currentUser.id === data.id));
+
+      document.title = `${title ? title.toUpperCase() + " " : ""}${data.username} — CHESS.`;
+      show("profile");
+    }
+
+    /* ---------- country ---------- */
+    const CODES = "AD AE AF AG AI AL AM AO AR AS AT AU AW AX AZ BA BB BD BE BF BG BH BI BJ BL BM BN BO BQ BR BS BT BW BY BZ CA CC CD CF CG CH CI CK CL CM CN CO CR CU CV CW CX CY CZ DE DJ DK DM DO DZ EC EE EG EH ER ES ET FI FJ FK FM FO FR GA GB GD GE GF GG GH GI GL GM GN GP GQ GR GT GU GW GY HK HN HR HT HU ID IE IL IM IN IQ IR IS IT JE JM JO JP KE KG KH KI KM KN KP KR KW KY KZ LA LB LC LI LK LR LS LT LU LV LY MA MC MD ME MF MG MH MK ML MM MN MO MP MQ MR MS MT MU MV MW MX MY MZ NA NC NE NF NG NI NL NO NP NR NU NZ OM PA PE PF PG PH PK PL PM PN PR PS PT PW PY QA RE RO RS RU RW SA SB SC SD SE SG SH SI SK SL SM SN SO SR SS ST SV SX SY SZ TC TD TG TH TJ TK TL TM TN TO TR TT TV TW TZ UA UG US UY UZ VA VC VE VG VI VN VU WF WS XK YE YT ZA ZM ZW".split(" ");
+    const regionNames = new Intl.DisplayNames(["en"], { type: "region" });
+    const countryName = (c) => { try { return regionNames.of(c) || c; } catch { return c; } };
+    {
+      const sel = $("countrySel");
+      sel.append(new Option("Set country…", ""));
+      CODES.map((c) => [c, countryName(c)]).sort((a, b) => a[1].localeCompare(b[1]))
+        .forEach(([c, n]) => sel.append(new Option(n, c)));
+    }
+    function renderCountry(p) {
+      const line = $("countryLine");
+      line.textContent = "";
+      if (p.country) {
+        const img = document.createElement("img");
+        img.className = "flag"; img.alt = "";
+        img.src = `https://flagcdn.com/w40/${p.country.toLowerCase()}.png`;
+        img.onerror = () => img.remove();
+        const a = document.createElement("a");
+        a.href = "rankings.html?country=" + p.country;
+        a.textContent = "Top players";
+        a.style.color = "#ff7777";
+        line.append(img, countryName(p.country) + " · ", a);
+      }
+      $("countrySel").value = p.country || "";
+    }
+    $("countrySel").addEventListener("change", async (e) => {
+      const code = e.target.value || null;
+      const { error } = await supabase.rpc("set_country", { p_code: code });
+      if (error) { avatarMsg(error.message, true); return; }
+      profile.country = code;
+      renderCountry(profile);
+      avatarMsg("Country saved.");
+    });
+
+    /* ---------- picture upload ---------- */
+    function avatarMsg(text, isError = false) {
+      $("avatarMsg").textContent = text;
+      $("avatarMsg").classList.toggle("error", isError);
+    }
+
+    async function squareJpeg(file, size) {
+      const bmp = await createImageBitmap(file);
+      const s = Math.min(bmp.width, bmp.height);
+      const canvas = document.createElement("canvas");
+      canvas.width = canvas.height = size;
+      const ctx = canvas.getContext("2d");
+      ctx.fillStyle = "#22252c";
+      ctx.fillRect(0, 0, size, size);
+      ctx.drawImage(bmp, (bmp.width - s) / 2, (bmp.height - s) / 2, s, s, 0, 0, size, size);
+      return new Promise((resolve, reject) =>
+        canvas.toBlob((b) => (b ? resolve(b) : reject(new Error("Couldn't process that image."))), "image/jpeg", 0.88));
+    }
+
+    $("avatarFile").addEventListener("change", async (e) => {
+      const file = e.target.files[0];
+      e.target.value = "";
+      if (!file || !currentUser || !profile) return;
+      avatarMsg("Uploading…");
+      try {
+        if (!/^image\/(png|jpeg|webp)$/.test(file.type)) throw new Error("Use a PNG, JPG or WebP image.");
+        if (file.size > 10 * 1024 * 1024) throw new Error("That image is too large (max 10 MB).");
+        const blob = await squareJpeg(file, 256);
+        const path = `${currentUser.id}/avatar.jpg`;
+        const { error } = await supabase.storage.from("avatars")
+          .upload(path, blob, { upsert: true, contentType: "image/jpeg" });
+        if (error) throw error;
+        const { data } = supabase.storage.from("avatars").getPublicUrl(path);
+        const url = data.publicUrl + "?v=" + Date.now();
+        const { error: rpcError } = await supabase.rpc("set_avatar", { p_url: url });
+        if (rpcError) throw rpcError;
+        profile.avatar_url = url;
+        fillAvatar($("avatar"), profile);
+        avatarMsg("Picture updated.");
+      } catch (err) {
+        avatarMsg(err.message || "Upload failed.", true);
+      }
+    });
+
+    $("removeAvatar").addEventListener("click", async () => {
+      if (!currentUser || !profile || !profile.avatar_url) return;
+      avatarMsg("Removing…");
+      try {
+        const { error } = await supabase.rpc("set_avatar", { p_url: null });
+        if (error) throw error;
+        await supabase.storage.from("avatars").remove([`${currentUser.id}/avatar.jpg`]);
+        profile.avatar_url = null;
+        fillAvatar($("avatar"), profile);
+        avatarMsg("Picture removed.");
+      } catch (err) {
+        avatarMsg(err.message || "Couldn't remove the picture.", true);
+      }
+    });
+
+    if (requestedUsername) {
+      $("usernameInput").value = requestedUsername;
+      loadPlayer(requestedUsername);
+    } else {
+      show("lookup");
+    }
+  </script>
+<script>
+(() => {
+  const N = { CM: "Candidate Master", PM: "Premier Master", NM: "National Master", IM: "International Master", GM: "Grandmaster", SGM: "Super Grandmaster", WC: "World Champion" };
+  const tag = () => document.querySelectorAll(".tb,.title-badge").forEach((e) => {
+    const n = N[e.textContent.trim().toUpperCase()];
+    if (n && e.dataset.tip !== n) e.dataset.tip = n;
+  });
+  let t;
+  new MutationObserver(() => { clearTimeout(t); t = setTimeout(tag, 60); }).observe(document.body, { childList: true, subtree: true });
+  tag();
+})();
+</script>
+</body>
+</html>
